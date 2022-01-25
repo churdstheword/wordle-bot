@@ -22,13 +22,12 @@ class WordleBot {
                 "--disable-setuid-sandbox",
                 "--no-sandbox",
             ]
-        });
-        const context = this.browser.defaultBrowserContext();
-        context.overridePermissions(this.wordleUrl, ['clipboard-read', 'clipboard-write']);
+        });      
 
         this.page = await this.browser.newPage();
-        await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36')
         await this.page.setViewport(this.viewport);
+        await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36')
+        await this.page.emulateTimezone('America/New_York');
         await this.page.goto(this.wordleUrl, { waitUntil: 'networkidle2' });
 
         // Click to hide the welcome popup

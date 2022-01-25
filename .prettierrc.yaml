@@ -1,0 +1,6 @@
+# https://prettier.io/docs/en/options.html
+overrides:
+  - files: "*.json"
+    options:
+      semi: false
+      tabWidth: 4

@@ -1,20 +1,45 @@
 'use strict'
 
-const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+const Discord = require('discord.js');
 const WordleBot = require('./wordle-bot');
 
-const app = express();
+const { Client, Collection, Intents, MessageAttachment, MessageEmbed } = Discord;
+dotenv.config();
 
-app.get("/screenshot.png", (req, res) => {
-    res.sendFile('/app/screenshot.png');
-});
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-app.get("/solve", async (req, res) => {
+client.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.data.name, command);
+}
+
+client.once('ready', async () => {
+    console.log('Ready!');
+    let myServer = client.guilds.cache.get(process.env.DISCORD_GUILD_ID);
+    let myChannel = myServer.channels.cache.get(process.env.DISCORD_CHANNEL_ID);
     const wordlebot = new WordleBot();
     await wordlebot.solve();
-    res.send('<html><body><h1>Solution:</h1><div><img style="widgth: 60%"src="screenshot.png"></div></body></html>');
+    const file = new MessageAttachment(path.resolve(__dirname, 'screenshot.png'));
+    const embed = new MessageEmbed().setTitle('Solution').setImage('attachment://screnshot.png')
+    myChannel.send({ embeds: [embed], files: [file] });
+
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
-});
+// client.on('interactionCreate', async interaction => {
+//     if (!interaction.isCommand()) return;
+//     const command = client.commands.get(interaction.commandName);
+//     if (!command) return;
+//     try {
+//         await command.execute(interaction);
+//     } catch (error) {
+//         console.error(error);
+//         return interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+//     }
+// });
+
+client.login(process.env.DISCORD_TOKEN);

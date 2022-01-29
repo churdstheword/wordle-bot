@@ -168,6 +168,45 @@ class WordleSolver {
         ).split('\n');
     }
 
+    getDayOffset() {
+        const today = new Date().setHours(0, 0, 0, 0);
+        const epoch = new Date(2021, 5, 19, 0, 0, 0, 0).setHours(0, 0, 0, 0);
+        return Math.round((today - epoch) / 0x5265C00);
+    }
+
+    // wordle.hash
+
+    getShareButtonText(evals) {
+
+        const offset = this.getDayOffset();
+        const guessCount = evals.reduce((prev, curr) => (curr ? prev + 1 : prev), 0)
+        const board = evals.reduce((prev, curr) => {
+            if (curr) {
+                let rowText = '';
+                for (const tileEvaluation of curr) {
+                    switch (tileEvaluation) {
+                        case 'correct':
+                            rowText += '🟩';
+                            break;
+                        case 'present':
+                            rowText += '🟨';
+                            break;
+                        case 'absent':
+                            rowText += '⬜';
+                            break;
+                    }
+                }
+
+                return prev.concat('\n', rowText);
+            } else {
+                return prev;
+            }
+        }, '');
+
+        return `Wordle ${offset} ${guessCount} / 6`.concat('\n\n', board);
+
+    }
+
 }
 
 module.exports = WordleSolver;

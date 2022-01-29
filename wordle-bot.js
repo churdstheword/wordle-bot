@@ -8,6 +8,7 @@ class WordleBot {
     constructor() {
         this.viewport = { width: 390, height: 844 }
         this.wordleUrl = 'https://www.powerlanguage.co.uk/wordle/';
+        this.shareButtonText = '';
     }
 
     async solve() {
@@ -22,7 +23,7 @@ class WordleBot {
                 "--disable-setuid-sandbox",
                 "--no-sandbox",
             ]
-        });      
+        });
 
         this.page = await this.browser.newPage();
         await this.page.setViewport(this.viewport);
@@ -49,6 +50,9 @@ class WordleBot {
 
                 // Need to wait for about 3 seconds for the animation
                 await this.page.waitForTimeout(3000);
+               
+                let evals = await this.getEvals();
+                this.shareButtonText = solver.getShareButtonText(evals);
 
                 // Click to hide the stats modal so we can get the winning screenshot
                 await this.page.focus('body');
@@ -67,6 +71,8 @@ class WordleBot {
 
         console.log('Closing Browser...');
         await this.browser.close();
+
+        return this.shareButtonText;
     }
 
     async makeGuess(word) {
@@ -76,7 +82,13 @@ class WordleBot {
         await this.page.waitForTimeout(2000);
     }
 
-    async checkBoardWinState() {
+    async getEvals() {
+        return await this.page.evaluate(() => {
+            return JSON.parse(window.localStorage.gameState).evaluations;
+        });
+    }
+
+    async checkBoardWinState(state) {
 
         return await this.page.evaluate(() => {
             const gameRows = document.querySelector("body > game-app")

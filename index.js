@@ -5,14 +5,13 @@ const path = require('path');
 const dotenv = require('dotenv');
 const Discord = require('discord.js');
 
-
 const { Client, Collection, Intents } = Discord;
 dotenv.config();
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.commands = new Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(path.resolve('./commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     client.commands.set(command.data.name, command);
@@ -36,6 +35,5 @@ client.on('interactionCreate', async interaction => {
         return interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 });
-
 
 client.login(process.env.DISCORD_TOKEN);

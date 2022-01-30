@@ -67,23 +67,23 @@ class WordleSolver {
         return data;
     }
 
-    getWordScore(word, prev = '', state = {}) {
-
-        const defaults = {};
-        const alphabet = this.getAlphabet();
-        for (let letter of alphabet) {
-            defaults[letter] = 'unknown';
-        }
-
-        state = _.merge({}, defaults, state);
+    getWordScore(word, state) {
 
         let score = 0;
         const lettersChosen = new Set();
         for (const [index, letter] of word.split('').entries()) {
 
             // Score based on known letters and frequency
-            let usedLetterModifier = (this.letters.has(letter) || lettersChosen.has(letter)) ? 0.5 : 1;
-            let correctLetterModifier = (index === prev.split('').indexOf(letter)) ? 1 : 4;
+            let usedLetterModifier = 1;
+            if (this.letters.has(letter) || lettersChosen.has(letter)) {
+                usedLetterModifier = 0.5;
+            }
+
+            let correctLetterModifier = 1;
+            let prev = state.boardState[state.rowIndex];
+            if (prev.split('').indexOf(letter) === index) {
+                correctLetterModifier = 4;
+            }
 
             let pScore = this.positional[index].get(letter);
             let gScore = this.globals.get(letter);
@@ -95,45 +95,66 @@ class WordleSolver {
         return score;
     }
 
-    filterWords(guess, state) {
+    filterWords(state) {
 
-        let required = [];
-        for (const [letter, status] of Object.entries(state)) {
-            if (status == 'present' || status == 'correct') {
-                required.push(letter);
-            }
-        }
+        const required = new Set();
+        const absent = new Set();
+        const correct = [new Set(), new Set(), new Set(), new Set(), new Set()];
+        const present = [new Set(), new Set(), new Set(), new Set(), new Set()];
 
-        const positional = [null, null, null, null, null];
-        for (const [index, letter] of guess.split('').entries()) {
-            if (state[letter] == 'correct') {
-                positional[index] = letter;
+        for (const [i, evals] of state.evaluations.entries()) {
+            if (evals) {
+                for (const [j, status] of evals.entries()) {
+                    const letter = state.boardState[i][j];
+
+                    switch (status) {
+                        case 'correct':
+                            required.add(letter);
+                            correct[j].add(letter);
+                            break;
+                        case 'present':
+                            required.add(letter);
+                            present[j].add(letter);
+                            break;
+                        case 'absent':
+                            absent.add(letter);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
         this.words = this.words.filter(word => {
 
             let requiredCheck = 0;
+
             for (const [index, letter] of word.split('').entries()) {
 
-                if (required.includes(letter)) {
+                if (required.has(letter)) {
                     requiredCheck++;
                 }
 
+                // Reject any word with a letter in a spot we know cant be that letter
+                if (present[index].size > 0 && present[index].has(letter)) {
+                    return false;
+                }
+
                 // Reject any word that does not have the positional letter
-                if (positional[index] !== null && positional[index] != letter) {
+                if (correct[index].size > 0 && !correct[index].has(letter)) {
                     return false;
                 }
 
                 // Reject any word that contains absent letters
-                if (state[letter] == 'absent') {
+                if (absent.has(letter)) {
                     return false;
                 }
 
             }
 
             // Reject any word if it does not contain all the required letters
-            if (requiredCheck != required.length) {
+            if (requiredCheck != required.size) {
                 return false;
             }
 
@@ -142,11 +163,13 @@ class WordleSolver {
 
     }
 
-    getNextWord(prev, state) {
+    getNextWord(state) {
+
+        this.filterWords(state);
 
         const scores = new Map();
         for (let word of this.words) {
-            scores.set(word, this.getWordScore(word, prev, state));
+            scores.set(word, this.getWordScore(word, state));
         }
 
         const sorted = [...scores.entries()].sort((a, b) => b[1] - a[1]);
@@ -155,8 +178,6 @@ class WordleSolver {
         for (const letter of word.split('')) {
             this.letters.add(letter);
         }
-
-        console.log('Guessing: ', word);
 
         return word;
     }
@@ -170,17 +191,17 @@ class WordleSolver {
 
     getDayOffset() {
         const today = new Date().setHours(0, 0, 0, 0);
-        const epoch = new Date(2021, 5, 19, 0, 0, 0, 0).setHours(0, 0, 0, 0);
-        return Math.round((today - epoch) / 0x5265C00);
+        const wordleEpoch = new Date(2021, 5, 19, 0, 0, 0, 0).setHours(0, 0, 0, 0);
+        return Math.round((today - wordleEpoch) / 0x5265C00);
     }
-
-    // wordle.hash
 
     getShareButtonText(evals) {
 
         const offset = this.getDayOffset();
         const guessCount = evals.reduce((prev, curr) => (curr ? prev + 1 : prev), 0)
+        const totalGuesses = 6;
         const board = evals.reduce((prev, curr) => {
+
             if (curr) {
                 let rowText = '';
                 for (const tileEvaluation of curr) {
@@ -198,12 +219,12 @@ class WordleSolver {
                 }
 
                 return prev.concat('\n', rowText);
-            } else {
-                return prev;
             }
+
+            return prev;
         }, '');
 
-        return `Wordle ${offset} ${guessCount} / 6`.concat('\n\n', board);
+        return `Wordle ${offset} ${guessCount}/${totalGuesses}`.concat('\n', board);
 
     }
 

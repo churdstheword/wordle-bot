@@ -7,7 +7,6 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 WORKDIR /app
 COPY ["package.json", "package-lock.json*", "./"]
 RUN npm install
-USER node
 ENV PATH /app/node_modules/.bin:$PATH
 COPY . .
 EXPOSE 3000

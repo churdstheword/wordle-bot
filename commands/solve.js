@@ -8,7 +8,7 @@ module.exports = {
         .setName('solve')
         .setDescription("Solve today's puzzle!"),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply();
         const wordlebot = new WordleBot();
         const text = await wordlebot.solve();
         await interaction.editReply(text);

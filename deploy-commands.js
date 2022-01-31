@@ -5,7 +5,11 @@ const dotenv = require('dotenv');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 
-dotenv.config();
+if (process.env.APP_ENV == 'production') {
+    dotenv.config({ path: '/var/app/.env' });
+} else {
+    dotenv.config();
+}
 
 const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));

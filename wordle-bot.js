@@ -119,8 +119,9 @@ class WordleBot {
                 }
 
                 // Wait for the animation and/or modal to show
-                await this.page.waitForTimeout(1000);
+                await this.page.waitForTimeout(2000);
                 await this.cancelModal();
+                await this.page.waitForTimeout(1000);
 
                 // Determine our final message
                 switch (this.state.gameStatus) {

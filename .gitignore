@@ -2,3 +2,6 @@
 /screenshots
 cache.json
 .env*
+!.env.example
+deployment*
+!deployment.example.yaml

@@ -4,6 +4,8 @@ services:
     container_name: wordle-bot
     build: .
     ports:
-      - "3000:3000"
+      - "3000:80"
     volumes:
       - .:/app
+    environment:
+      APP_ENV: local

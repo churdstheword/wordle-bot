@@ -6,7 +6,12 @@ const dotenv = require('dotenv');
 const Discord = require('discord.js');
 
 const { Client, Collection, Intents } = Discord;
-dotenv.config();
+
+if (process.env.APP_ENV == 'production') {
+    dotenv.config({ path: '/var/app/.env' });
+} else {
+    dotenv.config();
+}
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 

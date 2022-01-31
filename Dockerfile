@@ -9,5 +9,6 @@ COPY ["package.json", "package-lock.json*", "./"]
 RUN npm install
 ENV PATH /app/node_modules/.bin:$PATH
 COPY . .
-EXPOSE 3000
-CMD ["node", "index.js"]
+RUN mkdir -p /app/screenshots
+EXPOSE 80 443
+CMD ["node", "./index.js"]

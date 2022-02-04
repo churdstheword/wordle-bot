@@ -129,10 +129,11 @@ class WordleSolver {
         this.words = this.words.filter(word => {
 
             let requiredCheck = 0;
+            let checkedLetters = new Set();
 
             for (const [index, letter] of word.split('').entries()) {
 
-                if (required.has(letter)) {
+                if (required.has(letter) && !checkedLetters.has(letter)) {
                     requiredCheck++;
                 }
 
@@ -151,6 +152,8 @@ class WordleSolver {
                     return false;
                 }
 
+                checkedLetters.add(letter);
+
             }
 
             // Reject any word if it does not contain all the required letters
@@ -160,6 +163,8 @@ class WordleSolver {
 
             return true;
         });
+
+        console.log(this.words);
 
     }
 

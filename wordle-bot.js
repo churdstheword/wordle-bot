@@ -68,7 +68,7 @@ class WordleBot {
     }
 
     async takeScreenshot() {
-        console.log('Taking a screenshot...')
+        console.log('Taking a screenshot...');
         const date = new Date();
         let filename = [date.getFullYear(), date.getMonth() + 1, date.getDate()].join('-') + '.png';
         await this.page.screenshot({
@@ -104,6 +104,7 @@ class WordleBot {
 
                 // Get the inital board state
                 this.state = await this.getGameState();
+                console.log(this.state);
 
                 while (this.state.rowIndex < 6 && this.state.gameStatus === "IN_PROGRESS") {
 
@@ -115,6 +116,7 @@ class WordleBot {
                     // Get the new board state after guessing
                     await this.page.waitForTimeout(1000);
                     this.state = await this.getGameState();
+                    console.log(this.state);
 
                 }
 

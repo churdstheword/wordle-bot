@@ -164,8 +164,6 @@ class WordleSolver {
             return true;
         });
 
-        console.log(this.words);
-
     }
 
     getNextWord(state) {

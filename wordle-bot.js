@@ -104,7 +104,6 @@ class WordleBot {
 
                 // Get the inital board state
                 this.state = await this.getGameState();
-                console.log(this.state);
 
                 while (this.state.rowIndex < 6 && this.state.gameStatus === "IN_PROGRESS") {
 
@@ -116,7 +115,6 @@ class WordleBot {
                     // Get the new board state after guessing
                     await this.page.waitForTimeout(1000);
                     this.state = await this.getGameState();
-                    console.log(this.state);
 
                 }
 

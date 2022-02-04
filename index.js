@@ -24,9 +24,9 @@ for (const file of commandFiles) {
 
 client.once('ready', async () => {
     console.log('Ready!');
-    let server = client.guilds.cache.get(process.env.DISCORD_GUILD_ID)
-    let channel = server.channels.cache.get(process.env.DISCORD_CHANNEL_ID);
-    channel.send('WordleBot is reporting for duty!');
+    // let server = client.guilds.cache.get(process.env.DISCORD_GUILD_ID)
+    // let channel = server.channels.cache.get(process.env.DISCORD_CHANNEL_ID);
+    // channel.send('WordleBot is reporting for duty!');
 });
 
 client.on('interactionCreate', async interaction => {

@@ -20,7 +20,7 @@ class WordleBot {
 
         // Defaults settings
         const defaults = {
-            url: 'https://www.powerlanguage.co.uk/wordle/',
+            url: 'https://www.nytimes.com/games/wordle/index.html',
             viewport: { width: 390, height: 844 },
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
             timezone: 'America/New_York'
@@ -170,7 +170,7 @@ class WordleBot {
 
         return await this.page.evaluate(() => {
 
-            const gameState = JSON.parse(window.localStorage.gameState);
+            const gameState = JSON.parse(window.localStorage['nyt-wordle-state']);
 
             let remaining = 0;
             if (gameState.boardState.indexOf('') !== -1) {

@@ -34,8 +34,13 @@ class WordleSolver {
                 data.set(letter, value + 1);
             }
         }
+
+        data.forEach((count, letter, map) => {
+            map.set(letter, count / this.words.length * 5);
+        });
+
         return new Map([...data.entries()].sort((a, b) => {
-            return a[0].localeCompare(b[0]);
+            return b[1] - a[1];
         }));
     }
 
@@ -43,6 +48,7 @@ class WordleSolver {
 
         const data = [new Map(), new Map(), new Map(), new Map(), new Map()];
 
+        // Initialize the collection
         const alphabet = this.getAlphabet();
         for (let i = 0; i < data.length; i++) {
             for (const letter of alphabet) {
@@ -50,6 +56,7 @@ class WordleSolver {
             }
         }
 
+        // Count how often each letter occurs in each position
         for (let word of this.words) {
             const letters = word.split('');
             for (const [i, letter] of letters.entries()) {
@@ -58,9 +65,17 @@ class WordleSolver {
             }
         }
 
-        for (let [index, item] of data.entries()) {
-            data[index] = new Map([...item.entries()].sort((a, b) => {
-                return a[0].localeCompare(b[0]);
+        // Transform each count into a probability
+        for (const counts of data) {
+            counts.forEach((count, letter, map) => {
+                map.set(letter, count / this.words.length);
+            });
+        };
+
+        // Sort each position by letter frequency
+        for (let [index, value] of data.entries()) {
+            data[index] = new Map([...value.entries()].sort((a, b) => {
+                return b[1] - a[1];
             }));
         }
 
@@ -69,7 +84,7 @@ class WordleSolver {
 
     getWordScore(word, state) {
 
-        let score = 0;
+        let score = 1;
         const lettersChosen = new Set();
         for (const [index, letter] of word.split('').entries()) {
 
@@ -80,15 +95,16 @@ class WordleSolver {
             }
 
             let correctLetterModifier = 1;
-            let prev = state.boardState[state.rowIndex];
-            if (prev.split('').indexOf(letter) === index) {
+            let lastGuess = state.boardState.reduce((a, b) => (b) ? b : a);
+            let lastEvals = state.evaluations.reduce((a, b) => (b) ? b : a);
+            if (lastGuess.split('').indexOf(letter) === index && lastEvals[index] === 'correct') {
                 correctLetterModifier = 4;
             }
 
             let pScore = this.positional[index].get(letter);
             let gScore = this.globals.get(letter);
 
-            score += usedLetterModifier * correctLetterModifier * (pScore + gScore);
+            score *= usedLetterModifier * correctLetterModifier * (pScore * gScore);
 
             lettersChosen.add(letter);
         }
@@ -98,30 +114,47 @@ class WordleSolver {
     filterWords(state) {
 
         const required = new Set();
-        const absent = new Set();
-        const correct = [new Set(), new Set(), new Set(), new Set(), new Set()];
+        const correct = ['', '', '', '', ''];
+        const absent = [new Set(), new Set(), new Set(), new Set(), new Set()];
         const present = [new Set(), new Set(), new Set(), new Set(), new Set()];
+
 
         for (const [i, evals] of state.evaluations.entries()) {
             if (evals) {
+
+                let lettersEvaluated = new Set();
                 for (const [j, status] of evals.entries()) {
+
                     const letter = state.boardState[i][j];
 
                     switch (status) {
                         case 'correct':
                             required.add(letter);
-                            correct[j].add(letter);
+                            correct[j] = letter;
+                            present.map((item, k, arr) => {
+                                item.delete(letter);
+                            });
                             break;
                         case 'present':
-                            required.add(letter);
-                            present[j].add(letter);
+                            if (!lettersEvaluated.has(letter)) {
+                                present[j].add(letter);
+                                required.add(letter);
+                            }
                             break;
                         case 'absent':
-                            absent.add(letter);
+                            if ((state.boardState[i].split(letter).length - 1 == 1)) {
+                                absent.map((item) => {
+                                    item.add(letter);
+                                });
+                            } else {
+                                absent[j].add(letter);
+                            }
                             break;
                         default:
                             break;
                     }
+
+                    lettersEvaluated.add(letter);
                 }
             }
         }
@@ -143,12 +176,12 @@ class WordleSolver {
                 }
 
                 // Reject any word that does not have the positional letter
-                if (correct[index].size > 0 && !correct[index].has(letter)) {
+                if (correct[index].length > 0 && correct[index] !== letter) {
                     return false;
                 }
 
                 // Reject any word that contains absent letters
-                if (absent.has(letter)) {
+                if (absent[index].has(letter)) {
                     return false;
                 }
 

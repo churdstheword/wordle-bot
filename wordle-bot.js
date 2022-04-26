@@ -109,7 +109,7 @@ class WordleBot {
 
                     // Choose and guess the next word
                     let guess = solver.getNextWord(this.state);
-                    console.log('Guessing: ', guess);
+                    console.log('Guessing:', guess);
                     await this.makeGuess(guess);
 
                     // Get the new board state after guessing

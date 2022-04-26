@@ -5,7 +5,7 @@ RUN apk update && apk add --no-cache chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 WORKDIR /app
-COPY ["package.json", "package-lock.json*", "./"]
+COPY ["package.json", "package-lock.json", "./"]
 RUN npm install
 ENV PATH /app/node_modules/.bin:$PATH
 COPY . .
